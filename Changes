@@ -1,5 +1,10 @@
 Revision history for Perl extension Tree::MultiNode.
 
+1.0.8 Wed May  8 10:06:22 EDT 2002
+  KRB: Papp Zoltan <padre@inf.elte.hu> pointed out a bug in
+    Tree::MultiNode::Node's _clearrefs() where an array ref was
+    not being dereferenced correctly.  The fix has been applied.
+
 1.0.7 Tue Nov 13 09:00:49 EST 2001
   KRB: "Tunkelo Heikki (extern)" <Heikki.Tunkelo@erln.gepas.de> 
        subumitted a patch that fixed the select() method.

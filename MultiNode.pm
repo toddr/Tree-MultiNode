@@ -165,7 +165,7 @@ sub DESTROY
   $self->{'top'}->_clearrefs();
 }
 
-
+1;
 ################################################################################
 package Tree::MultiNode::Node;
 use strict;
@@ -440,12 +440,13 @@ sub _clearrefs
 {
   my $self = shift;
   delete $self->{'parent'};
-  foreach my $child ($self->children()) {
+  foreach my $child ( @{$self->children()} ) {
     $child->_clearrefs();
   }
   delete $self->{'children'};
 }
 
+1;
 ################################################################################
 package Tree::MultiNode::Handle;
 use strict;

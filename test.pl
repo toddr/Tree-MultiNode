@@ -101,3 +101,4 @@ die "Error calling traverse, should have had 7 count, but had: $count\n"
   unless 7 == $count;
 print "ok 5\n";
 
+# test _clearrefs
