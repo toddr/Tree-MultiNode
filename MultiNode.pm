@@ -132,7 +132,7 @@ use strict;
 use vars qw( $VERSION @ISA );
 require 5.004;
 
-$VERSION = "1.0.2";
+$VERSION = '1.0.3';
 @ISA     = ();
 
 =head2 Tree::MultiNode::new
@@ -153,6 +153,16 @@ sub new
 
   $self->{'top'} = Tree::MultiNode::Node->new();
   return $self;
+}
+
+#
+# this destructor is for clearing the circular refrences between
+# the tree, the nodes, and their children.
+#
+sub DESTROY
+{
+  my $self = shift;
+  $self->{'top'}->_clearrefs();
 }
 
 
@@ -415,6 +425,16 @@ sub dump
   print "[dump] children:  ", $self->{'children'}, "\n";
 }
 
+sub _clearrefs
+{
+  my $self = shift;
+  delete $self->{'parent'};
+  foreach my $child ($self->children()) {
+    $child->_clearrefs();
+  }
+  delete $self->{'children'};
+}
+
 ################################################################################
 package Tree::MultiNode::Handle;
 use strict;
@@ -594,7 +614,7 @@ sub set_value
   my $node = $self->{'curr_node'};
 
   print __PACKAGE__, "::set_value() setting value \"$value\" on: $node\n" 
-	  if $Tree::MultiNode::debug;
+    if $Tree::MultiNode::debug;
 
   return $node->value($value);
 }
@@ -1027,7 +1047,7 @@ sub get_child_value
   my $pos  = shift || $self->{'curr_pos'};
 
   print __PACKAGE__, "::sub get_child_value() pos is: $pos\n" 
-	  if $Tree::MultiNode::debug;
+    if $Tree::MultiNode::debug;
   my $node = $self->get_child($pos);
   return defined $node ? $node->value() : undef;
 }
@@ -1087,10 +1107,8 @@ Returns undef if there is no currnet node.
 sub child_keys
 {
   my $self = shift;
-	my $node = $self->{'curr_node'};
-
-	return undef unless $node;
-
+  my $node = $self->{'curr_node'};
+  return undef unless $node;
   return $node->child_keys();
 }
 
@@ -1107,9 +1125,10 @@ The Art of Computer Programming  Volume 1 Fundamental Algorithms
 
 =head1 AUTHORS
 
-Kyle R. Burton mortis@voicenet.com (initial version)
+Kyle R. Burton mortis@voicenet.com (initial version, and maintenence)
 Daniel X. Pape dpape@canis.uiuc.edu (see Changes file from the source
 archive)
+Eric Joanis <joanis@cs.toronto.edu>
 
 =head1 BUGS
 

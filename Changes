@@ -1,59 +1,66 @@
 Revision history for Perl extension Tree::MultiNode.
 
+1.0.3 Thu Sep  7 11:57:14 EDT 2000
+  KRB: added Tree::MultiNode::DESTROY, and Tree::MultiNode::Node::_clearrefs
+          so the refcounts of the nodes, as well as the data will go to
+          zero.  Eric Joanis <joanis@cs.toronto.edu> pointed out this bug,
+          and sent me an example.  The chagnes are based largely on his
+          work, with minor modifications.
+
 1.0.1 Tue Nov 23 11:05:42 EST 1999
   KRB: added child_keys to the handle object to return the child
-	  keys from the current node.
-
+          keys from the current node.
+ 
 1.0.1 Fri Jun  4 08:56:26 EDT 1999
   KRB: fixed print message in get_child_value() -- it should only print
-	  when $debug is defined...the bug was reported by 
-		Kohei Ohta <kohei@cysols.com>
+          when $debug is defined...the bug was reported by 
+          Kohei Ohta <kohei@cysols.com>
 
 1.0.0 Mon May 17 11:25:51 EDT 1999
   DXP: Applied patch from Daniel X. Pape dpape@canis.uiuc.edu,
-    which included:
-    - Node, and Handle objects: moved tree() member function from Node 
-      object to Handle object
-    - Handle object:  added functionality, and member function for depth
-      tracking as the Handle object is navigated through the tree.
-    - Documentation for the new code.
+          which included:
+          - Node, and Handle objects: moved tree() member function from Node 
+            object to Handle object
+          - Handle object:  added functionality, and member function for depth
+            tracking as the Handle object is navigated through the tree.
+          - Documentation for the new code.
 
-  KRB: Added Handle::kv_pairs(), and Handle::remove_child().
+        KRB: Added Handle::kv_pairs(), and Handle::remove_child().
 
-  KRB: Made minor changes to the debug statements so they print the
-    package name as well as the member function name - just to make
-    it easier to see these messages when used in conjunction with
-    other objects/packages/debugging code.
-
-  KRB: Minor changes to the new() member functions, so the objects can
-    be constructed in a larger variety of ways.
-
-  KRB: It seemed stable enough, and failry feature complete, and there
-    didn't seem like there were any more compelling reasons not to, so I
-     updated the version number to 1.0.0 so it looks stable.
-
-  KRB:  All previous changes made by KRB...
-
+        KRB: Made minor changes to the debug statements so they print the
+          package name as well as the member function name - just to make
+          it easier to see these messages when used in conjunction with
+          other objects/packages/debugging code.
+      
+        KRB: Minor changes to the new() member functions, so the objects can
+          be constructed in a larger variety of ways.
+      
+        KRB: It seemed stable enough, and failry feature complete, and there
+          didn't seem like there were any more compelling reasons not to, so I
+           updated the version number to 1.0.0 so it looks stable.
+      
+        KRB:  All previous changes made by KRB...
+      
 0.9.4 Wed Apr 14 12:35:01 EDT 1999
-  Fixed the issue with make test, and re-released it as 0.9.4 - make test
-  wasn't outputting the standard test output ("ok x").  This was sparked
-  by the CPAN testers group.  Thanks.
+        Fixed the issue with make test, and re-released it as 0.9.4 - make test
+        wasn't outputting the standard test output ("ok x").  This was sparked
+        by the CPAN testers group.  Thanks.
 
 0.9.3 Wed Nov  4 16:17:49 EST 1998
-  Again, some minor bug fixes.
+        Again, some minor bug fixes.
 
 0.9.2 Wed Nov  4 16:17:49 EST 1998
-  Some minor debugging, and added some (hopefuly useful)
-  member functions.
+        Some minor debugging, and added some (hopefuly useful)
+        member functions.
 
 0.9.1 Wed Oct 28 09:39:17 EST 1998 
-  First release to CPAN -- 0.9.1
+        First release to CPAN -- 0.9.1
 
 0.9.1 Wed Oct 28 09:39:17 EST 1998 
-  Made namespace change as suggested by Andreas J. Koenig, and 
-  created _alot_ more documentation.
+        Made namespace change as suggested by Andreas J. Koenig, and 
+        created _alot_ more documentation.
 
 0.9.0 Tue Oct 27 10:34:49 EST 1998
-  Created Initial Version (multi_tree.pm)
+        Created Initial Version (multi_tree.pm)
 
 
