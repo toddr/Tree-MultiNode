@@ -72,10 +72,18 @@ $handle->set_value('foo');
 $handle->top();
 my $count = 0;
 $handle->traverse(sub {
-  my $h = shift;
-  printf "%sk: %- 5s v: %s\n",('  'x$handle->depth()),$h->get_data() if $debug;
-  ++$count;
-});
+    my $h = pop;
+    printf "%sk: %- 5s v: %s\n",('  'x$handle->depth()),$h->get_data() 
+      if $debug;
+    ++$count;
+    die "error with arguments and traverse\n" unless 1 == $_[0];
+    die "error with arguments and traverse\n" unless 2 == $_[1];
+    die "error with arguments and traverse\n" unless 3 == $_[2];
+  },
+  1,
+  2,
+  3
+);
 
 die "Error calling traverse, should have had 7 count, but had: $count\n"
   unless 7 == $count;

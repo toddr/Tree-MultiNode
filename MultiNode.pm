@@ -132,7 +132,7 @@ use strict;
 use vars qw( $VERSION @ISA );
 require 5.004;
 
-$VERSION = '1.0.4';
+$VERSION = '1.0.5';
 @ISA     = ();
 
 =head2 Tree::MultiNode::new
@@ -1145,13 +1145,30 @@ sub child_keys
     my $h = shift;
     printf "%sk: %s v: %s\n",('  ' x $handle->depth()),$h->get_data();
   });
-});
 
 Traverse takes a subroutine reference, and will visit each node of the
 tree, starting with the node the handle currently points to, recrusivly
 down from the current position of the handle.  Each time the subroutine
 is called, it will be passed a handle which points to the node to be
-visited.  The handle passed to the subroutine is a 
+visited.  The handle passed to the subroutine is a copy of the 
+handle that is used to traverse the tree, so it's ok to change which 
+node it points to.  Any additional arguments after the sub ref will
+be passed to the traverse function _before_ the handle is passed.  This
+should allow you to pass constant arguments to the sub ref, or to have
+the subref to be a method on an object (and still pass the object's 
+'self' to the method).
+
+  $handle->traverse( \&Some::Object::method, $obj, $const1, \%const2 );
+
+  ...
+  sub method
+  {
+    my $handle = pop;
+    my $self   = shift;
+    my $const1 = shift;
+    my $const2 = shift;
+    # do something
+  }
 
 =cut
 
@@ -1159,17 +1176,18 @@ sub traverse
 {
   my $self   = shift;
   my $subref = shift;
+  confess "Error, invalid sub ref: $subref\n" unless 'CODE' eq ref($subref);
+  my @args   = @_;
 
   # visit us first...
   my $handle = Tree::MultiNode::Handle->new($self);
-  &$subref($handle);
+  push @args,$handle;
+  &$subref(@args);
 
   # now recurse into each of our children...
   for(my $i = 0; $i < scalar($self->children); ++$i ) {
     $self->down($i);
-      #$handle->_clone($self);
-      #$handle->traverse($subref);
-      $self->traverse($subref);
+      $self->traverse($subref,@args);
     $self->up();
   }
 }

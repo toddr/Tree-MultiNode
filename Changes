@@ -1,5 +1,13 @@
 Revision history for Perl extension Tree::MultiNode.
 
+1.0.5 Wed Dec 13 11:32:57 EST 2000
+  KRB: updated traverse so you can pass additional constant arguments
+          to the sub ref.
+
+1.0.4 Wed Dec 13 11:03:17 EST 2000
+  KRB: added Tree::MultiNode::Handle::traverse as a method that takes
+          a sub ref and invokes the subref for each node in the tree.
+
 1.0.3 Thu Sep  7 11:57:14 EDT 2000
   KRB: added Tree::MultiNode::DESTROY, and Tree::MultiNode::Node::_clearrefs
           so the refcounts of the nodes, as well as the data will go to
