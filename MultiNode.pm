@@ -7,11 +7,13 @@ modeling heirarchial data structures.
 =head1 SYNOPSIS
 
   use Tree::MultiNode;
+  use strict; 
+  use warnings;
   my $tree   = new Tree::MultiNode;
   my $handle = new Tree::MultiNode::Handle($tree);
 
   $handle->set_key("top");
-  $handle->set_key("level");
+  $handle->set_value("level");
 
   $handle->add_child("child","1");
   $handle->add_child("child","2");
@@ -31,6 +33,7 @@ modeling heirarchial data structures.
   $handle->top();
   &dump_tree($handle);
 
+  my $depth = 0;
   sub dump_tree
   {
     ++$depth;
@@ -132,7 +135,7 @@ use strict;
 use vars qw( $VERSION @ISA );
 require 5.004;
 
-$VERSION = '1.0.9';
+$VERSION = '1.0.10';
 @ISA     = ();
 
 =head2 Tree::MultiNode::new
@@ -165,7 +168,7 @@ sub new
 sub DESTROY
 {
   my $self = shift;
-  $self->{'top'}->_clearrefs();
+  $self->{'top'}->_clearrefs() if $self->{'top'};
 }
 
 1;
@@ -1262,13 +1265,11 @@ Algorithms in C++
 The Art of Computer Programming  Volume 1 Fundamental Algorithms
   third edition, Donald E. Knuth
 
-
 =head1 AUTHORS
 
 Kyle R. Burton mortis@voicenet.com (initial version, and maintenence)
 Daniel X. Pape dpape@canis.uiuc.edu (see Changes file from the source
-archive)
-Eric Joanis <joanis@cs.toronto.edu>
+archive), Eric Joanis <joanis@cs.toronto.edu>
 
 =head1 BUGS
 

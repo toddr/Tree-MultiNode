@@ -1,5 +1,13 @@
 Revision history for Perl extension Tree::MultiNode.
 
+1.0.10 Tue May 27 14:06:33 EDT 2003
+  KRB: Markus Maier <maier.m@web.de> found a bug in the tree's destructor
+    that happens when a reference to a handle outlives the tree object.
+    $self->{'top'} is then undefined and _clearrefs should not be called
+    (a second time).
+  KRB: fixed documentaiton bug (set_key/set_value), added use strict and 
+    warnings to the example in the POD.
+
 1.0.9 Tue Oct  8 20:38:52 EDT 2002
   KRB: Gregg Casillo <gcasillo@ket.org> sent in a fix that now allows
     keys to store the numeric value 0.
