@@ -1,5 +1,9 @@
 Revision history for Perl extension Tree::MultiNode.
 
+1.0.7 Tue Nov 13 09:00:49 EST 2001
+  KRB: "Tunkelo Heikki (extern)" <Heikki.Tunkelo@erln.gepas.de> 
+       subumitted a patch that fixed the select() method.
+
 1.0.6 Wed Dec 13 11:43:11 EST 2000
   KRB: traverse was created because of comments from
           Sverrir Jonsson <Sverrir.Jonsson@net-linx-ps.com>

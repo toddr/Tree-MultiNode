@@ -132,7 +132,7 @@ use strict;
 use vars qw( $VERSION @ISA );
 require 5.004;
 
-$VERSION = '1.0.6';
+$VERSION = '1.0.7';
 @ISA     = ();
 
 =head2 Tree::MultiNode::new
@@ -780,11 +780,12 @@ sub select
   my $self = shift;
   my $key  = shift;
   my $code = shift || sub { return shift eq shift; } ;
-  my($child,$pos,$found);
+  my($child,$pos);
+  my $found = undef;
 
   $pos = 0;
   foreach $child ($self->children()) {
-    if( &$code($key,$child) ) {
+    if( $code->($key,$child->key()) ) {
       $self->{'curr_pos'}   = $pos;
       $self->{'curr_child'} = $child;
       ++$found;
@@ -1182,7 +1183,7 @@ sub traverse
   # visit us first...
   my $handle = Tree::MultiNode::Handle->new($self);
   push @args,$handle;
-  &$subref(@args);
+  $subref->(@args);
 
   # now recurse into each of our children...
   for(my $i = 0; $i < scalar($self->children); ++$i ) {

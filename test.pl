@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..1\n"; }
+BEGIN { $| = 1; print "1..5\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Tree::MultiNode;
 $loaded = 1;
@@ -85,7 +85,19 @@ $handle->traverse(sub {
   3
 );
 
+
+# test select...
+$handle->top();
+#print "Children: ",join(', ',$handle->child_keys()),"\n";
+my $rv = $handle->select('1:2') or die "Error, select() failed: $rv\n";
+$handle->down();
+if( 'qux' ne $handle->get_value()) {
+  die "Error, select('1:2') did not position the handle on the child: ",
+    $handle->get_value(),',',$handle->get_key(),"\n";
+}
+print "ok 4\n";
+
 die "Error calling traverse, should have had 7 count, but had: $count\n"
   unless 7 == $count;
-print "ok 4\n";
+print "ok 5\n";
 
