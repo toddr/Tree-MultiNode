@@ -1,5 +1,9 @@
 Revision history for Perl extension Tree::MultiNode.
 
+1.0.6 Wed Dec 13 11:43:11 EST 2000
+  KRB: traverse was created because of comments from
+          Sverrir Jonsson <Sverrir.Jonsson@net-linx-ps.com>
+
 1.0.5 Wed Dec 13 11:32:57 EST 2000
   KRB: updated traverse so you can pass additional constant arguments
           to the sub ref.
