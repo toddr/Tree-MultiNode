@@ -12,6 +12,10 @@ child nodes with the same types or basic attributes.  Unique key
 enforcement would be inappropriate in these cases (at least for me).
 
 
+Wed Nov  4 16:17:49 EST 1998
+  Some minor debugging, and added some (hopefuly useful)
+	member functions.
+
 Wed Oct 28 09:39:17 EST 1998 
   First release to CPAN -- 0.9.1
 

@@ -129,7 +129,7 @@ The tree object.
 package Tree::MultiNode;
 require 5.004;
 
-$VERSION = "0.9.1";
+$VERSION = "0.9.3";
 @ISA     = ();
 
 =head2 Tree::MultiNode::new
@@ -156,7 +156,7 @@ use Carp;
 
 =head2 Tree::MultiNode::Node
 
-Please note that the Node object is used internaly by the MultiTree object.  
+Please note that the Node object is used internaly by the MultiNode object.  
 Though you have the ability to interact with the nodes, it is unlikely that
 you should need to.  That being said, the interface is documented here anyway.
 
@@ -195,10 +195,25 @@ sub new
     $self->{'children'} = [];
     $self->{'parent'}   = undef;
     $self->{'key'}      = $key || undef;
-    $self->{'value'}    = $value || undef;
+    $self->{'value'}    = defined $value ? $value : undef;
   }
 
   return $self;
+}
+
+=head2 Tree::MultiNode::Node::tree
+
+Returns the tree that was used to construct the node.  Useful if you're
+trying to create another node into the tree.
+
+  my $handle2 = new Tree::MultiNode::Handle($handle->tree());
+
+=cut
+
+sub tree
+{
+  my $self = shift;
+	return $self->{'tree'};
 }
 
 =head2 Tree::MultiNode::Node::key
@@ -290,6 +305,86 @@ sub children
   return $self->{'children'};
 }
 
+=head2 Tree::MultiNode::Node::child_keys  
+Tree::MultiNode::Node::child_values
+
+These functions return arrays consisting of the appropriate data
+from the child nodes.
+
+  my @keys     = $handle->child_keys();
+	my @vals     = $handle->child_values();
+	my %kv_pairs = $handle->child_kv_pairs();
+
+=cut
+
+sub child_keys
+{
+  my $self = shift;
+	my $children = $self->{'children'};
+	my @keys;
+	my $node;
+
+	foreach $node (@$children) {
+	  push @keys, $node->key();
+	}
+
+	return @keys;
+}
+
+sub child_values
+{
+  my $self = shift;
+	my $children = $self->{'children'};
+	my @values;
+	my $node;
+
+	foreach $node (@$children) {
+	  push @values, $node->value();
+	}
+
+	return @values;
+}
+
+sub child_kv_pairs
+{
+  my $self = shift;
+	my $children = $self->{'children'};
+	my %h;
+	my $node;
+
+	foreach $node (@$children) {
+	  $h{$node->key()} = $node->value();
+	}
+
+	return %h;
+}
+
+=head2 Tree::MultiNode::Node::child_key_positions  
+
+This function returns a hashtable that consists of the
+child keys as the hash keys, and the position in the child
+array as the value.  This allows for a quick and dirty way
+of looking up the position of a given key in the child list.
+
+  my %h = $node->child_key_positions();
+
+=cut
+
+sub child_key_positions
+{
+  my $self = shift;
+	my $children = $self->{'children'};
+	my(%h,$i,$node);
+
+	$i = 0;
+	foreach $node (@$children) {
+	  $h{$node->key()} = $i++;
+	}
+
+	return %h;
+}
+
+
 =head2 Tree::MultiNode::Node::parent
 
 Returns a refrence to the parent node of the current node.
@@ -360,16 +455,24 @@ sub new
 {
   my $self = {};
   bless $self, shift;
-  my $tree = shift;
-  print "ref(tree) is: ", ref($tree), "\n" if $Tree::MultiNode::debug;
-  unless( ref($tree) eq "Tree::MultiNode" ) {
-    confess "Error, invalid Tree::MultiNode refrence:  $tree\n";
-  }
+  my $data = shift;
+  print "ref($data) is: ", ref($data), "\n" if $Tree::MultiNode::debug;
+	if( ref($data) eq "Tree::MultiNode::Handle" ) {
+    $self->{'tree'}       = $data->{'tree'};
+    $self->{'curr_pos'}   = $data->{'curr_pos'};
+    $self->{'curr_node'}  = $data->{'curr_node'};
+    $self->{'curr_child'} = $data->{'curr_child'};
+	}
+	else {
+    unless( ref($data) eq "Tree::MultiNode" ) {
+      confess "Error, invalid Tree::MultiNode refrence:  $data\n";
+    }
 
-  $self->{'tree'}       = $tree;
-  $self->{'curr_pos'}   = undef;
-  $self->{'curr_node'}  = $tree->{'top'};
-  $self->{'curr_child'} = undef;
+    $self->{'tree'}       = $data;
+    $self->{'curr_pos'}   = undef;
+    $self->{'curr_node'}  = $data->{'top'};
+    $self->{'curr_child'} = undef;
+  }
   return $self;
 }
 
@@ -481,10 +584,15 @@ sub get_child
 {
   my $self = shift;
   my $children = $self->{'curr_node'}->children;
-  print "[get_child] children: $children\n" if $Tree::MultiNode::debug;
-  my $pos = shift || $self->{'curr_pos'};
+  my $pos = shift;
+	$pos = $self->{'curr_pos'} unless defined $pos;;
+  print "[get_child] children: $children   $pos\n" if $Tree::MultiNode::debug;
 
-  unless( $pos <= $#{$children} ) {
+	unless( defined $children ) {
+	  return undef;
+	}
+
+  unless( defined $pos && $pos <= $#{$children} ) {
     my $num = $#{$children};
     confess "Error, $pos is an invalid position [$num] $children.\n";
   }
@@ -544,6 +652,48 @@ sub add_child
         "\n" if $Tree::MultiNode::debug;
 }
 
+=head2 Tree::MultiNode::Handle::select
+
+Sets the current child via a specified value -- basicly it iterates
+through the array of children, looking for a match.  You have to 
+supply the key to look for, and optionaly a sub ref to find it.  The 
+default for this sub is 
+
+  sub { return shift eq shift; }
+
+Which is sufficient for testing the equality of strings (the most common
+thing that I think will get stored in the tree).  If you're storing multiple
+datatypes as keys, you'll have to write a sub that figures out how to 
+perform the comparisions in a sane manner.
+
+The sub ref should take 2 args, and compare them -- return false if they
+don't match, and true if they do.
+
+  $handle->select('lname', sub { return shift eq shift; } );
+
+=cut
+
+sub select
+{
+  my $self = shift;
+  my $key  = shift;
+  my $code = shift || sub { return shift eq shift; } ;
+  my($child,$pos,$found);
+
+	$pos = 0;
+	foreach $child ($self->children()) {
+	  if( &$code($key,$child) ) {
+		  $self->{'curr_pos'}   = $pos;
+		  $self->{'curr_child'} = $child;
+			++$found;
+			last;
+		}
+		++$pos;
+	}
+
+  return $found;
+}
+
 =head2 Tree::MultiNode::Handle::position
 
 Sets, or retreives the current child position.
@@ -558,19 +708,24 @@ sub position
   my $self = shift;
   my $pos = shift;
 
+	print "[position] $self  $pos\n" if $Tree::MultiNode::debug;
+
   unless( defined $pos ) {
     return $self->{'curr_pos'};
   }
 
   my $children = $self->{'curr_node'}->children;
   print "[position] children: $children\n" if $Tree::MultiNode::debug;
+  print "[position] position is $pos  ",
+	  $#{$children},
+		"\n" if $Tree::MultiNode::debug;
   unless( $pos <= $#{$children} ) {
     my $num = $#{$children};
     confess "Error, $pos is invalid [$num] $children.\n";
   }
-  $self->{'pos'} = $pos;
+  $self->{'curr_pos'} = $pos;
   $self->{'curr_child'} = $self->get_child($pos);
-  return $self->{'pos'};
+  return $self->{'curr_pos'};
 }
 
 =head2 Tree::MultiNode::Handle::first
@@ -663,11 +818,13 @@ sub down
 {
   my $self = shift;
   my $pos = shift;
-  my $children = $self->{'curr_node'}->children;
+	my $node = $self->{'curr_node'};
+	return undef unless defined $node;
+  my $children = $node->children;
   print "[down] children: $children\n" if $Tree::MultiNode::debug;
 
   if( defined $pos ) {
-    unless( $self->position($pos) ) {
+    unless( defined $self->position($pos) ) {
       confess "Error, $pos was an invalid position.\n";
     }
   }
@@ -694,6 +851,7 @@ sub up
 {
   my $self = shift;
   my $node = $self->{'curr_node'};
+	return undef unless defined $node;
   my $parent = $node->parent();
 
   unless( defined $parent ) {
@@ -745,9 +903,69 @@ the children of the current node.
 sub children
 {
   my $self = shift;
-  my $children = $self->{'curr_node'}->children;
+	my $node = $self->{'curr_node'};
+	return undef unless defined $node;
+  my $children = $node->children;
 
   return @{$children};
+}
+
+=head2 Tree::MultiNode::Handle::child_key_positions
+
+This function returns a hashtable that consists of the
+child keys as the hash keys, and the position in the child
+array as the value.  This allows for a quick and dirty way
+of looking up the position of a given key in the child list.
+
+  my %h = $handle->child_key_positions();
+
+=cut
+
+sub child_key_positions
+{
+  my $self = shift;
+  my $node = $self->{'curr_node'};
+
+  return $node->child_key_positions();
+}
+
+=head2 Tree::MultiNode::Handle::get_child_key
+
+Returns the key at the specified position, or from the corresponding child
+node.
+
+  my $key = $handle->get_child_key();
+
+=cut
+
+sub get_child_key
+{
+  my $self = shift;
+	my $pos  = shift;
+	$pos = $self->{'curr_pos'} unless defined $pos;
+
+  my $node = $self->get_child($pos);
+	return defined $node ? $node->key() : undef;
+}
+
+=head2 Tree::MultiNode::Handle::get_child_value
+
+Returns the value at the specified position, or from the corresponding child
+node.
+
+  my $value = $handle->get_child_value();
+
+=cut
+
+sub get_child_value
+{
+  my $self = shift;
+	my $pos  = shift;
+	$ps = $self->{'curr_pos'} unless defined $pos;
+
+	print "[sub get_child_value] pos is: $pos\n";
+  my $node = $self->get_child($pos);
+	return defined $node ? $node->value() : undef;
 }
 
 =head1 SEE ALSO
@@ -773,6 +991,5 @@ Kyle R. Burton mortis@voicenet.com
 releases and only very minimal testing has been done.
 
 =cut 
-
 
 1;
