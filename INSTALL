@@ -1,0 +1,15 @@
+Tree::MultiNode Installation Instructions
+
+Create the Makefile by running the following:
+
+  [user@host MultiNode-0.9.1]$ perl Makefile.PL
+
+Create the documentation, and prepare the module for installtion:
+
+  [user@host MultiNode-0.9.1]$ make
+
+Run the installtion:
+
+  [user@host MultiNode-0.9.1]$ make install
+
+That should be it.

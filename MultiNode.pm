@@ -1,0 +1,778 @@
+
+=head1 NAME
+
+MultiNode.pm  -- a multi node tree object.  Most useful for 
+modeling heirarchial data structures.
+
+=head1 SYNOPSIS
+
+  use Tree::MultiNode;
+  my $tree   = new Tree::MultiNode;
+  my $handle = new Tree::MultiNode::Handle($tree);
+
+  $handle->set_key("top");
+  $handle->set_key("level");
+
+  $handle->add_child("child","1");
+  $handle->add_child("child","2");
+
+  $handle->first();
+  $handle->down();
+
+  $handle->add_child("grandchild","1-1");
+  $handle->up();
+
+  $handle->last();
+  $handle->down();
+
+  $handle->add_child("grandchild","2-1");
+  $handle->up();
+  
+  $handle->top();
+  &dump_tree($handle);
+
+  sub dump_tree
+  {
+    ++$depth;
+    my $handle = shift;
+    my $lead = ' ' x ($depth*2);
+    my($key,$val);
+  
+    ($key,$val) = $handle->get_data();
+
+    print $lead, "key:   $key\n";
+    print $lead, "val:   $val\n";
+    print $lead, "depth: $depth\n";
+  
+    my $i;
+    for( $i = 0; $i < scalar($handle->children); ++$i ) {
+      $handle->down($i);
+        &dump_tree($handle);
+      $handle->up();
+    }
+    --$depth;
+  }
+
+=head1 DESCRIPTION
+
+Tree::MultiNode, Tree::MultiNode::Node, and MultiNode::Handle are objects 
+modeled after C++ classes that I had written to help me model heirarchical 
+information as datastructures (such as the relationships between records in 
+an RDBMS).  The tree is basicly a list of lists type data structure, where 
+each node has a key, a value, and a list of children.  The tree has no
+internal sorting, though all operations perserve the order of the child 
+nodes.  
+
+=head2 Creating a Tree
+
+The concept of creating a handle based on a tree lets you have multiple handles
+into a single tree without having to copy the tree.  You have to use a handle
+for all operations on the tree (other than construction).
+
+When you first construct a tree, it will have a single empty node.  When you
+construct a handle into that tree, it will set the top node in the tree as 
+it's current node.  
+
+  my $tree   = new Tree::MultiNode;
+  my $handle = new Tree::MultiNode::Handle($tree);
+
+=head2 Using a Handle to Manipulate the Tree
+
+At this point, you can set the key/value in the top node, or start adding
+child nodes.
+
+  $handle->set_key("blah");
+  $handle->set_value("foo");
+
+  $handle->add_child("quz","baz");
+  # or
+  $handle->add_child();
+
+add_child can take 3 paramters -- a key, a value, and a 
+position.  The key and value will set the key/value of the child on construction.
+If pos is passed, the new child will be inserted into the list of children.
+
+To move the handle so it points at a child (so you can start manipulating that
+child), there are a series of methods to call:
+
+  $handle->first();   # sets the current child to the first in the list
+  $handle->next();    # sets the next, or first if there was no next
+  $handle->prev();    # sets the previous, or last if there was no next
+  $handle->last();    # sets to the last child
+  $handle->down();    # positions the handle's current node to the current child
+
+To move back up, you can call the method up:
+
+  $handle->up();      # moves to this node's parent
+
+up() will fail if the current node has no parent node.  Most of the member 
+functions return either undef to indicate failure, or some other value to 
+indicate success.
+
+=head2 $Tree::MultiNode::debug
+
+If set to a true value, it enables debugging output in the code.  This will 
+likely be removed in future versions as the code becomes more stable.
+
+=head1 API REFERENCE
+
+=cut
+
+################################################################################
+
+=head2 Tree::MultiNode
+
+The tree object.
+
+=cut
+
+package Tree::MultiNode;
+require 5.004;
+
+$VERSION = "0.9.1";
+@ISA     = ();
+
+=head2 Tree::MultiNode::new
+
+Creates a new Tree.  The tree will have a single top level node when created.
+The first node will have no value (undef) in either it's key or it's value.
+
+  my $tree = new Tree::MultiNode;
+
+=cut
+
+sub new
+{
+  my $self = {};
+  bless $self, shift;
+  $self->{'top'} = Tree::MultiNode::Node->new();
+  return $self;
+}
+
+
+################################################################################
+package Tree::MultiNode::Node;
+use Carp;
+
+=head2 Tree::MultiNode::Node
+
+Please note that the Node object is used internaly by the MultiTree object.  
+Though you have the ability to interact with the nodes, it is unlikely that
+you should need to.  That being said, the interface is documented here anyway.
+
+=cut
+
+
+=head2 Tree::MultiNode::Node::new
+
+Creates a new Node.  There are two optional arguments.  If passed, the first
+is stored as the key, and the second is stored as the value.
+
+  my $node1 = new Tree::MultiNode::Node;
+  my $node2 = new Tree::MultiNode::Node("fname");
+  my $node3 = new Tree::MultiNode::Node("fname","Larry");
+
+=cut
+
+sub new 
+{
+  my $self = {};
+  bless $self, shift;
+
+  my $node = shift;
+  if( ref($node) eq "Tree::MultiNode::Node" ) {
+    # become a copy of that node...
+    $self->{'parent'}   = $node->parent;
+    $self->{'children'} = [$node->children];
+    $self->{'key'}      = $node->key;
+    $self->{'value'}    = $node->value;
+  }
+  else {
+    my($key,$value);
+    $key = $node;
+    $value = shift;
+    print "[new] key,val = $key,$value\n" if $Tree::MultiNode::debug;
+    $self->{'children'} = [];
+    $self->{'parent'}   = undef;
+    $self->{'key'}      = $key || undef;
+    $self->{'value'}    = $value || undef;
+  }
+
+  return $self;
+}
+
+=head2 Tree::MultiNode::Node::key
+
+Used to set, or retreive the key for a node.  If a parameter is passed,
+it sets the key for the node.  The value of the key member is alwyays
+returned.
+
+  print $node3->key(), "\n";    # 'fname'
+
+=cut
+
+sub key
+{
+  my $self = shift;
+  my $key = shift;
+
+  if(defined $key) {
+    print "[key] setting key: $key on $self\n" if $Tree::MultiNode::debug;
+    $self->{'key'} = $key;
+  }
+
+  return $self->{'key'};
+}
+
+=head2 Tree::MultiNode::Node::value
+
+Used to set, or retreive the value for a node.  If a parameter is passed,
+it sets the value for the node.  The value of the value member is alwyays
+returned.
+
+  print $node3->value(), "\n";   # 'Larry'
+
+=cut
+
+sub value
+{
+  my $self = shift;
+  my $value = shift;
+
+  if( defined $value ) {
+    print "[value] setting value: $value on $self\n" if $Tree::MultiNode::debug;
+    $self->{'value'} = $value;
+  }
+
+  return $self->{'value'};
+}
+
+=head2 Tree::MultiNode::Node::clear_key
+
+Clears the key member bu deleting it.
+
+  $node3->clear_key();
+
+=cut
+
+sub clear_key
+{
+  my $self = shift;
+  return delete $self->{'key'};
+}
+
+=head2 Tree::MultiNode::Node::clear_value
+
+Clears the value member bu deleting it.
+
+  $node3->clear_value();
+
+=cut
+
+sub clear_value
+{
+  my $self = shift;
+  return delete $self->{'value'};
+}
+
+=head2 Tree::MultiNode::Node::children
+
+Returns a refrence to the array that contains the children of the
+node object.
+
+  $array_ref = $node3->children();
+
+=cut
+
+sub children 
+{
+  my $self = shift;
+  return $self->{'children'};
+}
+
+=head2 Tree::MultiNode::Node::parent
+
+Returns a refrence to the parent node of the current node.
+
+  $node_parent = $node3->parent();
+
+=cut
+
+sub parent
+{
+  my $self = shift;
+  return $self->{'parent'};
+}
+
+=head2 Tree::MultiNode::Node::dump
+
+Used for diagnostics, it prints out the members of the node.
+
+  $node3->dump();
+
+=cut
+
+sub dump
+{
+  my $self = shift;
+
+  print "[dump] key:       ", $self->{'key'}, "\n";
+  print "[dump] val:       ", $self->{'value'}, "\n";
+  print "[dump] parent:    ", $self->{'parent'}, "\n";
+  print "[dump] children:  ", $self->{'children'}, "\n";
+}
+
+################################################################################
+package Tree::MultiNode::Handle;
+use Carp;
+
+=head2 Tree::MultiNode::Handle
+
+Handle is used as a 'pointer' into the tree.  It has a few attributes that it keeps
+track of.  These are:
+
+  1. the top of the tree 
+  2. the current node
+  3. the current child node
+
+The top of the tree never changes, and you can reset the handle to point back at
+the top of the tree by calling the top() method.  
+
+The current node is where the handle is 'pointing' in the tree.  The current node
+is changed with functions like top(), down(), and up().
+
+The current child node is used for traversing downward into the tree.  The members
+first(), next(), prev(), last(), and position() can be used to set the current child,
+and then traverse down into it.
+
+=cut
+
+=head2 Tree::MultiNode::Handle::New
+
+Constructs a new handle.  You must pass a tree object to Handle::New.
+
+  my $tree   = new Tree::MultiNode;
+  my $handle = new Tree::MultiNode::Handle($tree);
+
+=cut
+
+sub new
+{
+  my $self = {};
+  bless $self, shift;
+  my $tree = shift;
+  print "ref(tree) is: ", ref($tree), "\n" if $Tree::MultiNode::debug;
+  unless( ref($tree) eq "Tree::MultiNode" ) {
+    confess "Error, invalid Tree::MultiNode refrence:  $tree\n";
+  }
+
+  $self->{'tree'}       = $tree;
+  $self->{'curr_pos'}   = undef;
+  $self->{'curr_node'}  = $tree->{'top'};
+  $self->{'curr_child'} = undef;
+  return $self;
+}
+
+=head2 Tree::MultiNode::Handle::get_data
+
+Retrieves both the key, and value (as an array) for the current node.
+
+  my ($key,$val) = $handle->get_data();
+
+=cut
+
+sub get_data
+{
+  my $self = shift;
+  my $node = $self->{'curr_node'};
+
+  return($node->key,$node->value);
+}
+
+=head2 Tree::MultiNode::Handle::get_key
+
+Retrieves the key for the current node.
+
+  $key = $handle->get_key();
+
+=cut
+
+sub get_key
+{
+  my $self = shift;
+  my $node = $self->{'curr_node'};
+
+  my $key = $node->key();
+
+  print "[get_key] getting from $node : $key\n" if $Tree::MultiNode::debug;
+
+  return $key;
+}
+
+=head2 Tree::MultiNode::Handle::set_key
+
+Sets the key for the current node.
+
+  $handle->set_key("lname");
+
+=cut
+
+sub set_key
+{
+  my $self = shift;
+  my $key = shift;
+  my $node = $self->{'curr_node'};
+
+  print "[set_key] setting key \"$key\" on: $node\n" if $Tree::MultiNode::debug;
+
+  return $node->key($key);
+}
+
+=head2 Tree::MultiNode::Handle::get_value
+
+Retreives the value for the current node.
+
+  $val = $handle->get_value();
+
+=cut
+
+sub get_value
+{
+  my $self = shift;
+  my $node = $self->{'curr_node'};
+
+  my $value = $node->value();
+
+  print "[get_value] getting from $node : $value\n" if $Tree::MultiNode::debug;
+
+  return $value;
+}
+
+=head2 Tree::MultiNode::Handle::set_value
+
+Sets the value for the current node.
+
+  $handle->set_value("Wall");
+
+=cut
+
+sub set_value
+{
+  my $self = shift;
+  my $value = shift;
+  my $node = $self->{'curr_node'};
+
+  print "[set_value] setting value \"$value\" on: $node\n" if $Tree::MultiNode::debug;
+
+  return $node->value($value);
+}
+
+=head2 Tree::MultiNode::Handle::get_child
+
+get_child takes an optional paramater which is the position of the child
+that is to be retreived.  If this position is not specified, get_child 
+attempts to return the current child.  get_child returns a Node object.
+
+  my $child_node = $handle->get_child();
+
+=cut
+
+sub get_child
+{
+  my $self = shift;
+  my $children = $self->{'curr_node'}->children;
+  print "[get_child] children: $children\n" if $Tree::MultiNode::debug;
+  my $pos = shift || $self->{'curr_pos'};
+
+  unless( $pos <= $#{$children} ) {
+    my $num = $#{$children};
+    confess "Error, $pos is an invalid position [$num] $children.\n";
+  }
+
+  print "[get_child] returning [$pos]: ", ${$children}[$pos],
+        "\n" if $Tree::MultiNode::debug;
+  return( ${$children}[$pos] );
+}
+
+=head2 Tree::MultiNode::Handle::add_child
+
+This member adds a new child node to the end of the array of children for the
+current node.  There are three optional parameters:
+
+  - a key
+  - a vlaue
+  - a position
+
+If passed, the key and value will be set in the new child.  If a position is 
+passed, the new child will be inserted into the current array of children at
+the position specified.
+
+  $handle->add_child();                    # adds a blank child
+  $handle->add_child("language","perl");   # adds a child to the end
+  $handle->add_child("language","C++",0);  # adds a child to the front
+
+=cut
+
+sub add_child
+{
+  my $self = shift;
+  my($key,$value,$pos) = @_;
+  my $children = $self->{'curr_node'}->children;
+  print "[add_child] children: $children\n" if $Tree::MultiNode::debug;
+  my $curr_pos = $self->{'curr_pos'};
+  my $curr_node = $self->{'curr_node'};
+
+  print "[add_child] adding child $child ($key,$value) to: $children\n" 
+    if $Tree::MultiNode::debug;
+  my $child = Tree::MultiNode::Node->new($key,$value);
+  $child->{'parent'} = $curr_node;
+
+  if(defined $pos) {
+    print "[add_child] adding at $pos $child\n" if $Tree::MultiNode::debug;
+    unless($pos <= $#{$children}) {
+      my $num =  $#{$children};
+      confess "Position $pos is invalid for child position [$num] $children.\n";
+    }
+    splice( @{$children}, $pos, 1, $child, ${$children}[$pos] );
+  }
+  else {
+    print "[add_child] adding at end $child\n" if $Tree::MultiNode::debug;
+    push @{$children}, $child;
+  }
+
+  print "[add_child] children:", join(',',@{$self->{'curr_node'}->children}),
+        "\n" if $Tree::MultiNode::debug;
+}
+
+=head2 Tree::MultiNode::Handle::position
+
+Sets, or retreives the current child position.
+
+  print "curr child pos is: ", $handle->position(), "\n";
+  $handle->position(5);    # sets the 6th child as the current child
+
+=cut
+
+sub position
+{
+  my $self = shift;
+  my $pos = shift;
+
+  unless( defined $pos ) {
+    return $self->{'curr_pos'};
+  }
+
+  my $children = $self->{'curr_node'}->children;
+  print "[position] children: $children\n" if $Tree::MultiNode::debug;
+  unless( $pos <= $#{$children} ) {
+    my $num = $#{$children};
+    confess "Error, $pos is invalid [$num] $children.\n";
+  }
+  $self->{'pos'} = $pos;
+  $self->{'curr_child'} = $self->get_child($pos);
+  return $self->{'pos'};
+}
+
+=head2 Tree::MultiNode::Handle::first
+Tree::MultiNode::Handle::next
+Tree::MultiNode::Handle::prev
+Tree::MultiNode::Handle::last
+
+These functions manipulate the current child member.  first() sets the first
+child as the current child, while last() sets the last.  next(), and prev() will
+move to the next/prev child respectivly.  If there is no current child node,
+next() will have the same effect as first(), and prev() will operate as last().
+prev() fails if the current child is the first child, and next() fails if the
+current child is the last child -- i.e. they do not wrap around.
+
+These functions will fail if there are no children for the current node.
+
+  $handle->first();  # sets to the 0th child
+  $handle->next();   # to the 1st child
+  $handle->prev();   # back to the 0th child
+  $handle->last();   # go straight to the last child.
+
+=cut
+
+sub first
+{
+  my $self = shift;
+
+  $self->{'curr_pos'}   = 0;
+  $self->{'curr_child'} = $self->get_child(0);
+  print "[first] set child[",$self->{'curr_pos'},"]: ",$self->{'curr_child'},
+        "\n" if $Tree::MultiNode::debug;
+  return $self->{'curr_pos'};
+}
+
+sub next
+{
+  my $self = shift;
+  my $pos = $self->{'curr_pos'} + 1;
+  my $children = $self->{'curr_node'}->children;
+  print "[next] children: $children\n" if $Tree::MultiNode::debug;
+
+  unless( $pos >= 0 && $pos <= $#{$children} ) {
+    return undef;
+  }
+
+  $self->{'curr_pos'}   = $pos;
+  $self->{'curr_child'} = $self->get_child($pos);
+  return $self->{'curr_pos'};
+}
+
+sub prev
+{
+  my $self = shift;
+  my $pos = $self->{'curr_pos'} - 1;
+  my $children = $self->{'curr_node'}->children;
+  print "[prev] children: $children\n" if $Tree::MultiNode::debug;
+
+  unless( $pos >= 0 && $pos <= $#{$children} ) {
+    return undef;
+  }
+
+  $self->{'curr_pos'}   = $pos;
+  $self->{'curr_child'} = $self->get_child($pos);
+  return $self->{'curr_pos'};
+}
+
+sub last
+{
+  my $self = shift;
+  my $children = $self->{'curr_node'}->children;
+  my $pos = $#{$children};
+  print "[last] children [$pos]: $children\n" if $Tree::MultiNode::debug;
+
+  $self->{'curr_pos'}   = $pos;
+  $self->{'curr_child'} = $self->get_child($pos);
+  return $self->{'curr_pos'};
+}
+
+=head2 Tree::MultiNode::Handle::down
+
+down() moves the handle to point at the current child node.  It fails
+if there is no current child node.  When down() is called, the current
+child becomes invalid (undef).
+
+  $handle->down();
+
+=cut
+
+sub down
+{
+  my $self = shift;
+  my $pos = shift;
+  my $children = $self->{'curr_node'}->children;
+  print "[down] children: $children\n" if $Tree::MultiNode::debug;
+
+  if( defined $pos ) {
+    unless( $self->position($pos) ) {
+      confess "Error, $pos was an invalid position.\n";
+    }
+  }
+
+  $self->{'curr_pos'}   = undef;
+  $self->{'curr_node'}  = $self->{'curr_child'};
+  $self->{'curr_child'} = undef;
+  print "[down] set to: ", $self->{'curr_node'}, "\n" if $Tree::MultiNode::debug;
+
+  return 1;
+}
+
+=head2 Tree::MultiNode::Handle::up
+
+down() moves the handle to point at the parent of the current node.  It fails
+if there is no parent node.  When up() is called, the current child becomes 
+invalid (undef).
+
+  $handle->up();
+
+=cut
+
+sub up
+{
+  my $self = shift;
+  my $node = $self->{'curr_node'};
+  my $parent = $node->parent();
+
+  unless( defined $parent ) {
+    return undef;
+  }
+  
+  $self->{'curr_pos'}   = undef;
+  $self->{'curr_node'}  = $parent;
+  $self->{'curr_child'} = undef;
+
+  return 1;
+}
+
+=head2 Tree::MultiNode::Handle::top
+
+Resets the handle to point back at the top of the tree.  
+When top() is called, the current child becomes invalid (undef).
+
+  $handle->top();
+
+=cut
+
+sub top
+{
+  my $self = shift;
+  my $tree = $self->{'tree'};
+
+  $self->{'curr_pos'}   = undef;
+  $self->{'curr_node'}  = $tree->{'top'};
+  $self->{'curr_child'} = undef;
+
+  return 1;
+}
+
+=head2 Tree::MultiNode::Handle::children
+
+This returns an array of Node objects that represents the children of the
+current Node.  Unlike Node::children(), the array Handle::children() is not
+a refrnece to an array, but an array.  Useful if you need to iterate through
+the children of the current node.
+
+  print "There are: ", scalar($handle->children()), " children\n";
+  foreach $child ($handle->children()) {
+    print $child->key(), " : ", $child->value(), "\n";
+  }
+
+=cut
+
+sub children
+{
+  my $self = shift;
+  my $children = $self->{'curr_node'}->children;
+
+  return @{$children};
+}
+
+=head1 SEE ALSO
+
+Algorithms in C++
+   Robert Sedgwick
+   Addison Wesley 1992
+   ISBN 0201510596
+
+The Art of Computer Programming  Volume 1 Fundamental Algorithms
+  third edition, Donald E. Knuth
+
+
+=head1 AUTHORS
+
+Kyle R. Burton mortis@voicenet.com
+
+=head1 BUGS
+
+- There is currently no way to remove a child node.
+
+- Not all the methods are tested, this is one of the first 
+releases and only very minimal testing has been done.
+
+=cut 
+
+
+1;
