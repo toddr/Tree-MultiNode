@@ -132,7 +132,7 @@ use strict;
 use vars qw( $VERSION @ISA );
 require 5.004;
 
-$VERSION = "1.0.1";
+$VERSION = "1.0.2";
 @ISA     = ();
 
 =head2 Tree::MultiNode::new
@@ -1075,6 +1075,23 @@ sub remove_child
   my $node = splice(@{$children},$pos,1);
 
   return ($node->key,$node->value);
+}
+
+=head2 Tree::MultiNode::Handle::child_keys
+
+Returns the keys from the current node's children.
+Returns undef if there is no currnet node.
+
+=cut
+
+sub child_keys
+{
+  my $self = shift;
+	my $node = $self->{'curr_node'};
+
+	return undef unless $node;
+
+  return $node->child_keys();
 }
 
 =head1 SEE ALSO

@@ -1,5 +1,9 @@
 Revision history for Perl extension Tree::MultiNode.
 
+1.0.1 Tue Nov 23 11:05:42 EST 1999
+  KRB: added child_keys to the handle object to return the child
+	  keys from the current node.
+
 1.0.1 Fri Jun  4 08:56:26 EDT 1999
   KRB: fixed print message in get_child_value() -- it should only print
 	  when $debug is defined...the bug was reported by 
