@@ -132,7 +132,7 @@ use strict;
 use vars qw( $VERSION @ISA );
 require 5.004;
 
-$VERSION = '1.0.3';
+$VERSION = '1.0.4';
 @ISA     = ();
 
 =head2 Tree::MultiNode::new
@@ -201,10 +201,7 @@ sub new
   my $node = shift;
   if( ref($node) eq "Tree::MultiNode::Node" ) {
     # become a copy of that node...
-    $self->{'parent'}   = $node->parent;
-    $self->{'children'} = [$node->children];
-    $self->{'key'}      = $node->key;
-    $self->{'value'}    = $node->value;
+    $self->_clone($node);
   }
   else {
     my($key,$value);
@@ -219,6 +216,20 @@ sub new
   }
 
   return $self;
+}
+
+#
+# internal method for making the current node a clone of another
+# node...
+#
+sub _clone
+{
+  my $self = shift;
+  my $them = shift;
+  $self->{'parent'}   = $them->parent;
+  $self->{'children'} = [$them->children];
+  $self->{'key'}      = $them->key;
+  $self->{'value'}    = $them->value;
 }
 
 =head2 Tree::MultiNode::Node::key
@@ -486,11 +497,7 @@ sub new
   print __PACKAGE__, "::new() ref($data) is: ", ref($data), "\n" 
     if $Tree::MultiNode::debug;
   if( ref($data) eq "Tree::MultiNode::Handle" ) {
-    $self->{'tree'}       = $data->{'tree'};
-    $self->{'curr_pos'}   = $data->{'curr_pos'};
-    $self->{'curr_node'}  = $data->{'curr_node'};
-    $self->{'curr_child'} = $data->{'curr_child'};
-    $self->{'curr_depth'} = $data->{'curr_depth'};
+    $self->_clone($data);
   }
   else {
     unless( ref($data) eq "Tree::MultiNode" ) {
@@ -504,6 +511,26 @@ sub new
     $self->{'curr_depth'} = 0;
   }
   return $self;
+}
+
+#
+# internal method for making the current handle a copy of another
+# handle...
+#
+sub _clone
+{
+  my $self = shift;
+  my $them = shift;
+  print __PACKAGE__, "::_clone() cloning: $them\n" 
+    if $Tree::MultiNode::debug;
+  print __PACKAGE__, "::_clone() depth: ",$them->{'curr_depth'},"\n" 
+    if $Tree::MultiNode::debug;
+  $self->{'tree'}       = $them->{'tree'};
+  $self->{'curr_pos'}   = $them->{'curr_pos'};
+  $self->{'curr_node'}  = $them->{'curr_node'};
+  $self->{'curr_child'} = $them->{'curr_child'};
+  $self->{'curr_depth'} = $them->{'curr_depth'};
+  return 1;
 }
 
 =head2 Tree::MultiNode::Handle::tree
@@ -1110,6 +1137,41 @@ sub child_keys
   my $node = $self->{'curr_node'};
   return undef unless $node;
   return $node->child_keys();
+}
+
+=head2 Tree::MultiNode::Handle::traverse
+
+  $handle->traverse(sub {
+    my $h = shift;
+    printf "%sk: %s v: %s\n",('  ' x $handle->depth()),$h->get_data();
+  });
+});
+
+Traverse takes a subroutine reference, and will visit each node of the
+tree, starting with the node the handle currently points to, recrusivly
+down from the current position of the handle.  Each time the subroutine
+is called, it will be passed a handle which points to the node to be
+visited.  The handle passed to the subroutine is a 
+
+=cut
+
+sub traverse
+{
+  my $self   = shift;
+  my $subref = shift;
+
+  # visit us first...
+  my $handle = Tree::MultiNode::Handle->new($self);
+  &$subref($handle);
+
+  # now recurse into each of our children...
+  for(my $i = 0; $i < scalar($self->children); ++$i ) {
+    $self->down($i);
+      #$handle->_clone($self);
+      #$handle->traverse($subref);
+      $self->traverse($subref);
+    $self->up();
+  }
 }
 
 =head1 SEE ALSO

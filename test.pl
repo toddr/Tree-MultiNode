@@ -50,3 +50,34 @@ else {
   print "not ok ", $test, "\n";
 }
 
+
+#
+# test traverse...
+#
+print "testing traverse...\n" if $debug;
+$tree   = new Tree::MultiNode();
+$handle = new Tree::MultiNode::Handle($tree);
+$handle->set_key('1');
+$handle->set_value('foo');
+  $handle->add_child('1:1','bar');
+  $handle->down(0);
+    $handle->add_child('1:1:1','baz');
+    $handle->add_child('1:1:2','boz');
+    $handle->up();
+  $handle->add_child('1:2','qux');
+  $handle->down(1);
+    $handle->add_child('1:2:1','qaz');
+    $handle->add_child('1:2:2','qoz');
+
+$handle->top();
+my $count = 0;
+$handle->traverse(sub {
+  my $h = shift;
+  printf "%sk: %- 5s v: %s\n",('  'x$handle->depth()),$h->get_data() if $debug;
+  ++$count;
+});
+
+die "Error calling traverse, should have had 7 count, but had: $count\n"
+  unless 7 == $count;
+print "ok 4\n";
+
