@@ -132,7 +132,7 @@ use strict;
 use vars qw( $VERSION @ISA );
 require 5.004;
 
-$VERSION = "1.0.0";
+$VERSION = "1.0.1";
 @ISA     = ();
 
 =head2 Tree::MultiNode::new
@@ -593,7 +593,8 @@ sub set_value
   my $value = shift;
   my $node = $self->{'curr_node'};
 
-  print __PACKAGE__, "::set_value() setting value \"$value\" on: $node\n" if $Tree::MultiNode::debug;
+  print __PACKAGE__, "::set_value() setting value \"$value\" on: $node\n" 
+	  if $Tree::MultiNode::debug;
 
   return $node->value($value);
 }
@@ -1025,7 +1026,8 @@ sub get_child_value
   my $self = shift;
   my $pos  = shift || $self->{'curr_pos'};
 
-  print __PACKAGE__, "::sub get_child_value() pos is: $pos\n";
+  print __PACKAGE__, "::sub get_child_value() pos is: $pos\n" 
+	  if $Tree::MultiNode::debug;
   my $node = $self->get_child($pos);
   return defined $node ? $node->value() : undef;
 }
@@ -1041,8 +1043,8 @@ current node for this handle.
 
 sub kv_pairs
 {
-	my $self = shift;
-	my $node = $self->{'curr_node'};
+  my $self = shift;
+  my $node = $self->{'curr_node'};
 
   return $node->child_kv_pairs();
 }
@@ -1057,7 +1059,7 @@ sub remove_child
   my $pos  = shift || $self->{'curr_pos'};
 
   print __PACKAGE__, "::remove_child() pos is: $pos\n"
-	  if $Tree::MultiNode::debug;
+    if $Tree::MultiNode::debug;
 
   my $children = $self->{'curr_node'}->children;
 

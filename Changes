@@ -1,5 +1,10 @@
 Revision history for Perl extension Tree::MultiNode.
 
+1.0.1 Fri Jun  4 08:56:26 EDT 1999
+  KRB: fixed print message in get_child_value() -- it should only print
+	  when $debug is defined...the bug was reported by 
+		Kohei Ohta <kohei@cysols.com>
+
 1.0.0 Mon May 17 11:25:51 EDT 1999
   DXP: Applied patch from Daniel X. Pape dpape@canis.uiuc.edu,
     which included:
