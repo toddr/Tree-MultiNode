@@ -3,6 +3,6 @@ MANIFEST
 Makefile.PL
 MultiNode.pm
 test.pl
-old.test.pl
 INSTALL
 README
+dist.sh

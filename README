@@ -12,7 +12,7 @@ child nodes with the same types or basic attributes.  Unique key
 enforcement would be inappropriate in these cases (at least for me).
 
 
-Copyright <A9> 1997-1998 Kyle R. Burton.  All rights reserved.
+Copyright 1997-1999 Kyle R. Burton.  All rights reserved.
   mortis@voicenet.com
   http://www.voicenet.com/~mortis
 
