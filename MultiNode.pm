@@ -129,7 +129,7 @@ The tree object.
 package Tree::MultiNode;
 require 5.004;
 
-$VERSION = "0.9.3";
+$VERSION = "0.9.4";
 @ISA     = ();
 
 =head2 Tree::MultiNode::new

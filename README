@@ -12,22 +12,6 @@ child nodes with the same types or basic attributes.  Unique key
 enforcement would be inappropriate in these cases (at least for me).
 
 
-Wed Nov  4 16:17:49 EST 1998
-  Some minor debugging, and added some (hopefuly useful)
-	member functions.
-
-Wed Oct 28 09:39:17 EST 1998 
-  First release to CPAN -- 0.9.1
-
-Wed Oct 28 09:39:17 EST 1998 
-  Made namespace change as suggested by Andreas J. Koenig, and 
-	created _alot_ more documentation.
-
-Tue Oct 27 10:34:49 EST 1998
-  Created Initial Version (multi_tree.pm)
-
-
-
 Copyright <A9> 1997-1998 Kyle R. Burton.  All rights reserved.
   mortis@voicenet.com
   http://www.voicenet.com/~mortis
