@@ -1,5 +1,10 @@
 Revision history for Perl extension Tree::MultiNode.
 
+1.0.9 Tue Oct  8 20:38:52 EDT 2002
+  KRB: Gregg Casillo <gcasillo@ket.org> sent in a fix that now allows
+    keys to store the numeric value 0.
+  KRB: fixed reported bug with traverse not passing the new handle.
+
 1.0.8 Wed May  8 10:06:22 EDT 2002
   KRB: Papp Zoltan <padre@inf.elte.hu> pointed out a bug in
     Tree::MultiNode::Node's _clearrefs() where an array ref was

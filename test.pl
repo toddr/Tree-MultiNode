@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..5\n"; }
+BEGIN { $| = 1; print "1..6\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Tree::MultiNode;
 $loaded = 1;
@@ -101,4 +101,14 @@ die "Error calling traverse, should have had 7 count, but had: $count\n"
   unless 7 == $count;
 print "ok 5\n";
 
-# test _clearrefs
+# test storing '0' as a child key
+$handle->add_child('zero','foo');
+$handle->last();
+$handle->down();
+$handle->set_key(0);
+unless( 0 == $handle->get_key() ) {
+  die "Error, can't store 0 as a key!\n";
+}
+print "ok 6\n";
+
+

@@ -132,10 +132,13 @@ use strict;
 use vars qw( $VERSION @ISA );
 require 5.004;
 
-$VERSION = '1.0.7';
+$VERSION = '1.0.9';
 @ISA     = ();
 
 =head2 Tree::MultiNode::new
+
+  @param    package name or tree object [scalar]
+  @returns  new tree object
 
 Creates a new Tree.  The tree will have a single top level node when created.
 The first node will have no value (undef) in either it's key or it's value.
@@ -182,12 +185,29 @@ you should need to.  That being said, the interface is documented here anyway.
 
 =head2 Tree::MultiNode::Node::new
 
-Creates a new Node.  There are two optional arguments.  If passed, the first
+  new($)
+    @param    package name or node object to clone [scalar]
+    @returns  new node object
+
+  new($$)
+    @param    key   [scalar]
+    @param    value [scalar]
+    @returns  new node object
+
+Creates a new Node.  There are three behaviors for new.  A constructor with no
+arguments creates a new, empty node.  A single argument of another node object
+will create a clone of the node object.  If two arguments are passed, the first
 is stored as the key, and the second is stored as the value.
 
-  my $node1 = new Tree::MultiNode::Node;
-  my $node2 = new Tree::MultiNode::Node("fname");
-  my $node3 = new Tree::MultiNode::Node("fname","Larry");
+  # clone an existing node
+  my $node = new Tree::MultiNode::Node($oldNode);
+  # or
+  my $node = $oldNode->new();
+
+  # create a new node
+  my $node = new Tree::MultiNode::Node;
+  my $node = new Tree::MultiNode::Node("fname");
+  my $node = new Tree::MultiNode::Node("fname","Larry");
 
 =cut
 
@@ -234,6 +254,9 @@ sub _clone
 
 =head2 Tree::MultiNode::Node::key
 
+  @param     key [scalar]
+  @returns   the key [scalar]
+
 Used to set, or retreive the key for a node.  If a parameter is passed,
 it sets the key for the node.  The value of the key member is alwyays
 returned.
@@ -244,10 +267,9 @@ returned.
 
 sub key
 {
-  my $self = shift;
-  my $key = shift;
+  my($self,$key) = @_;
 
-  if(defined $key) {
+  if(@_>1) {
     print __PACKAGE__, "::key() setting key: $key on $self\n" 
       if $Tree::MultiNode::debug;
     $self->{'key'} = $key;
@@ -257,6 +279,9 @@ sub key
 }
 
 =head2 Tree::MultiNode::Node::value
+
+  @param    the value to set [scalar]
+  @returns  the value [scalar]
 
 Used to set, or retreive the value for a node.  If a parameter is passed,
 it sets the value for the node.  The value of the value member is alwyays
@@ -282,6 +307,8 @@ sub value
 
 =head2 Tree::MultiNode::Node::clear_key
 
+  @returns  the deleted key
+
 Clears the key member bu deleting it.
 
   $node3->clear_key();
@@ -296,6 +323,8 @@ sub clear_key
 
 =head2 Tree::MultiNode::Node::clear_value
 
+  @returns  the deleted value
+
 Clears the value member bu deleting it.
 
   $node3->clear_value();
@@ -309,6 +338,8 @@ sub clear_value
 }
 
 =head2 Tree::MultiNode::Node::children
+
+  @returns  reference to children [array reference]
 
 Returns a refrence to the array that contains the children of the
 node object.
@@ -1148,15 +1179,42 @@ sub child_keys
     printf "%sk: %s v: %s\n",('  ' x $handle->depth()),$h->get_data();
   });
 
-Traverse takes a subroutine reference, and will visit each node of the
-tree, starting with the node the handle currently points to, recrusivly
-down from the current position of the handle.  Each time the subroutine
-is called, it will be passed a handle which points to the node to be
-visited.  The handle passed to the subroutine is a copy of the 
-handle that is used to traverse the tree, so it's ok to change which 
-node it points to.  Any additional arguments after the sub ref will
-be passed to the traverse function _before_ the handle is passed.  This
-should allow you to pass constant arguments to the sub ref, or to have
+Traverse takes a subroutine reference, and will visit each node of the tree,
+starting with the node the handle currently points to, recrusivly down from the
+current position of the handle.  Each time the subroutine is called, it will be
+passed a handle which points to the node to be visited.  Any additional
+arguments after the sub ref will be passed to the traverse function _before_
+the handle is passed.  This should allow you to pass constant arguments to the
+sub ref.
+
+Modifying the node that the handle points to will cause traverse to work
+from the new node forward.
+
+=cut
+
+sub traverse
+{
+  my($self,$subref,@args) = @_;
+  confess "Error, invalid sub ref: $subref\n" unless 'CODE' eq ref($subref);
+  # operate on a cloned handle
+  return Tree::MultiNode::Handle->new($self)->_traverseImpl($subref,@args);
+}
+
+sub _traverseImpl
+{
+  my($self,$subref,@args) = @_;
+  $subref->( @args, $self );
+  for(my $i = 0; $i < scalar($self->children); ++$i ) {
+    $self->down($i);
+      $self->_traverseImpl($subref,@args);
+    $self->up();
+  }
+  return;
+}
+
+
+=head2 Tree::MultiNode::Handle::traverse
+ or to have
 the subref to be a method on an object (and still pass the object's 
 'self' to the method).
 
@@ -1171,28 +1229,28 @@ the subref to be a method on an object (and still pass the object's
     my $const2 = shift;
     # do something
   }
-
 =cut
 
-sub traverse
+sub otraverse
 {
-  my $self   = shift;
-  my $subref = shift;
+  my($self,$subref,@args) = @_;
   confess "Error, invalid sub ref: $subref\n" unless 'CODE' eq ref($subref);
-  my @args   = @_;
+  # operate on a cloned handle
+  return Tree::MultiNode::Handle->new($self)->_otraverseImpl($subref,@args);
+}
 
-  # visit us first...
-  my $handle = Tree::MultiNode::Handle->new($self);
-  push @args,$handle;
-  $subref->(@args);
-
-  # now recurse into each of our children...
+sub _otraverseImpl
+{
+  my($self,$obj,$method,@args) = @_;
+  $obj->$method( @args, $self );
   for(my $i = 0; $i < scalar($self->children); ++$i ) {
     $self->down($i);
-      $self->traverse($subref,@args);
+      $self->_otraverseImpl($obj,$method,@args);
     $self->up();
   }
+  return;
 }
+
 
 =head1 SEE ALSO
 
