@@ -4,13 +4,13 @@ use Module::Build;
 
 my $builder = Module::Build->new(
     module_name         => 'Tree::MultiNode',
-    author              => 'Kyle R. Burton <krburton@cpan.org>'
+    author              => 'Kyle R. Burton <krburton@cpan.org>',
     dist_version_from   => 'lib/Tree/MultiNode.pm',
     abstract_from       => 'lib/Tree/MultiNode.pm',
     license             => 'perl',
     build_requires      => {
 	'Test::More'    => '0.40', 
-	'Module::Build' => '0.3603',
+	'Module::Build' => '0.35',
     },
     add_to_cleanup      => ['Tree-MultiNode-*' ],
     create_makefile_pl  => 'traditional',
