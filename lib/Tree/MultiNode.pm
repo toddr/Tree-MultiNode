@@ -769,6 +769,14 @@ sub add_child
     if $Tree::MultiNode::debug;
 }
 
+=head2 Tree::MultiNode::Handle::add_child_node
+
+Recently added via RT # 5435 -- Currently in need of proper documentation and test patches
+
+  I've patched Tree::MultiNode 1.0.10 to add a method I'm currently calling add_child_node(). It works just like add_child() except it takes either a Tree::MultiNode::Node or a Tree::MultiNode object instead. I found this extremely useful when using recursion to populate a tree. It could also be used to subsume any tree into another tree, so this touches on the topic of the other bug item here asking for methods to copy/move trees/nodes.
+
+=cut
+
 sub add_child_node
 {
   my $self = shift;

@@ -10,7 +10,7 @@ abstract: lib/Tree/MultiNode.pm
 license: perl
 resources:
   MailingList: mailto:toddr@cpan.org
-  bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Tree-MultiNode
+  bugtracker: https://rt.cpan.org/NoAuth/Bugs.html?Dist=Tree-MultiNode
   homepage: http://github.com/toddr/Tree-MultiNode
   license: http://dev.perl.org/licenses/
   repository: git://github.com/toddr/Tree-MultiNode.git
