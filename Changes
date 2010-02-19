@@ -5,6 +5,7 @@ Revision history for Perl extension Tree::MultiNode.
   - Convert to Test::More suite with additional tests
   - Generat META.yml file from new Build.PL data
   - RT #5107 - Documentation patch for Tree-MultiNode-1.0.10
+  - RT #1743 - Documentation fix for traverse example to be consistent with code
 
 1.0.10 Tue May 27 14:06:33 EDT 2003
   KRB: Markus Maier <maier.m@web.de> found a bug in the tree's destructor

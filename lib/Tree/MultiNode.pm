@@ -1178,7 +1178,7 @@ sub child_keys
 =head2 Tree::MultiNode::Handle::traverse
 
   $handle->traverse(sub {
-    my $h = shift;
+    my $h = pop;
     printf "%sk: %s v: %s\n",('  ' x $handle->depth()),$h->get_data();
   });
 
