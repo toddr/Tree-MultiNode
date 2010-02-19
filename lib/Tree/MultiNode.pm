@@ -769,6 +769,48 @@ sub add_child
     if $Tree::MultiNode::debug;
 }
 
+sub add_child_node
+{
+  my $self = shift;
+  my($child,$pos) = @_;
+  my $children = $self->{'curr_node'}->children;
+  print __PACKAGE__, "::add_child_node() children: $children\n" 
+    if $Tree::MultiNode::debug;
+  my $curr_pos = $self->{'curr_pos'};
+  my $curr_node = $self->{'curr_node'};
+  if(ref($child) eq 'Tree::MultiNode') {
+    my $top = $child->{'top'};
+    $child->{'top'} = undef;
+    $child = $top;
+  }
+  confess "Invalid child argument.\n"
+    if(ref($child) ne 'Tree::MultiNode::Node');
+
+  $child->{'parent'} = $curr_node;
+
+  print __PACKAGE__, "::add_child_node() adding child $child ",
+    "to: $children\n" if $Tree::MultiNode::debug;
+
+  if(defined $pos) {
+    print __PACKAGE__, "::add_child_node() adding at $pos $child\n" 
+      if $Tree::MultiNode::debug;
+    unless($pos <= $#{$children}) {
+      my $num =  $#{$children};
+      confess "Position $pos is invalid for child position [$num] $children.\n";
+    }
+    splice( @{$children}, $pos, 1, $child, ${$children}[$pos] );
+  }
+  else {
+    print __PACKAGE__, "::add_child_node() adding at end $child\n" 
+      if $Tree::MultiNode::debug;
+    push @{$children}, $child;
+  }
+
+  print __PACKAGE__, "::add_child_node() children:", 
+    join(',',@{$self->{'curr_node'}->children}), "\n" 
+    if $Tree::MultiNode::debug;
+}
+
 =head2 Tree::MultiNode::Handle::depth
 
 Gets the depth for the current node.
