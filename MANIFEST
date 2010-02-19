@@ -1,7 +1,8 @@
 Changes
 MANIFEST
-Makefile.PL
-MultiNode.pm
-test.pl
 INSTALL
 README
+Makefile.PL
+Build.PL
+lib/Tree/MultiNode.pm
+t/test.pl

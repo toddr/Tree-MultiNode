@@ -1,5 +1,8 @@
 Revision history for Perl extension Tree::MultiNode.
 
+1.0.11 
+  TODDR - Convert module to standart treee layout.
+
 1.0.10 Tue May 27 14:06:33 EDT 2003
   KRB: Markus Maier <maier.m@web.de> found a bug in the tree's destructor
     that happens when a reference to a handle outlives the tree object.
