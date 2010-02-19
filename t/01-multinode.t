@@ -1,114 +1,81 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
+#!perl -T
 
-######################### We start with some black magic to print on failure.
+use Test::More tests => 60;
 
-# Change 1..1 below to 1..last_test_to_print .
-# (It may become useful if the test is moved to ./t subdirectory.)
-
-BEGIN { $| = 1; print "1..6\n"; }
-END {print "not ok 1\n" unless $loaded;}
 use Tree::MultiNode;
-$loaded = 1;
-print "ok 1\n";
 
-######################### End of black magic.
+my $tree   = Tree::MultiNode->new;
+my $handle = Tree::MultiNode::Handle->new($tree);
+isa_ok($tree, 'Tree::MultiNode');
+isa_ok($handle, 'Tree::MultiNode::Handle');
 
-# Insert your test code below (better if it prints "ok 13"
-# (correspondingly "not ok 13") depending on the success of chunk 13
-# of the test code):
-
-$debug = 0;
-$test = 1;
-
-if( $debug ) {
-  $Tree::MultiNode::debug = 1;
-}
-
-++$test;
-my $tree   = new Tree::MultiNode();
-my $handle = new Tree::MultiNode::Handle($tree);
-if( $tree && $handle ) {
-  print "ok ", $test, "\n";
-}
-else {
-  print "not ok ", $test, "\n";
-}
-
-++$test;
-$handle->add_child("a",1);
-$handle->add_child("b",1);
-$handle->add_child("c",1);
+$handle->add_child("a", 1);
+$handle->add_child("b", 1);
+$handle->add_child("c", 1);
 
 $handle->remove_child(1);
 my %pairs = $handle->kv_pairs();
-print "[$0] Pairs: ", join(',',%pairs), "\n" if $debug;
-if( !defined($pairs{"b"}) && defined($pairs{"a"}) && defined($pairs{"c"}) ) {
-  print "ok ", $test, "\n";
-}
-else {
-  print "not ok ", $test, "\n";
-}
 
+diag("[$0] Pairs: ", join(', ',%pairs));
 
-#
-# test traverse...
-#
-print "testing traverse...\n" if $debug;
+ok(!defined $pairs{'b'}, "pair b not defined");
+ok( defined $pairs{'a'}, "pair a defined");
+ok( defined $pairs{'c'}, "pair c defined");
+
+pass("testing traverse...");
+pass("....t digit formatting...");
 $tree   = new Tree::MultiNode();
 $handle = new Tree::MultiNode::Handle($tree);
-$handle->set_key('1');
-$handle->set_value('foo');
-  $handle->add_child('1:1','bar');
-  $handle->down(0);
-    $handle->add_child('1:1:1','baz');
-    $handle->add_child('1:1:2','boz');
-    $handle->up();
-  $handle->add_child('1:2','qux');
-  $handle->down(1);
-    $handle->add_child('1:2:1','qaz');
-    $handle->add_child('1:2:2','qoz');
+isa_ok($tree, 'Tree::MultiNode');
+isa_ok($handle, 'Tree::MultiNode::Handle');
 
-$handle->top();
+is($handle->set_key('1'),             1,     'set_key');
+is($handle->set_value('foo'),         'foo', 'set_value');
+is($handle->add_child('1:1','bar'),   undef, '  add_child("1:1", "bar")');
+is($handle->down(0),                  1,     '  down(0)');;
+is($handle->add_child('1:1:1','baz'), undef, '    add_child("1:1:1", "baz")');
+is($handle->add_child('1:1:2','boz'), undef, '    add_child("1:1:1", "boz")');
+is($handle->up(),                     1,     '    up');
+is($handle->add_child('1:2','qux'),   undef, '  add_child("1:2", "qux")');
+is($handle->down(1),                  1,     '  down(1)');
+is($handle->add_child('1:2:1','qaz'), undef, '    add_child("1:2:1","qaz")');
+is($handle->add_child('1:2:2','qoz'), undef, '    add_child("1:2:2","qoz")');
+
+is($handle->top(), 1, "move to top of tree");
 my $count = 0;
 $handle->traverse(sub {
     my $h = pop;
-    printf "%sk: %- 5s v: %s\n",('  'x$handle->depth()),$h->get_data() 
-      if $debug;
-    ++$count;
-    die "error with arguments and traverse\n" unless 1 == $_[0];
-    die "error with arguments and traverse\n" unless 2 == $_[1];
-    die "error with arguments and traverse\n" unless 3 == $_[2];
+    diag(sprintf("%sk: %- 5s v: %s\n", '  ' x $handle->depth, $h->get_data));
+
+    $count++;
+    isa_ok($h, 'Tree::MultiNode::Handle');
+    is($_[0], 'arg1', "Traverse argument 1 received");
+    is($_[1], 'arg2', "Traverse argument 2 received");
+    is($_[2], 'arg3', "Traverse argument 3 received");
   },
-  1,
-  2,
-  3
+  'arg1',
+  'arg2',
+  'arg3'
 );
 
 
-# test select...
-$handle->top();
-#print "Children: ",join(', ',$handle->child_keys()),"\n";
-my $rv = $handle->select('1:2') or die "Error, select() failed: $rv\n";
-$handle->down();
-if( 'qux' ne $handle->get_value()) {
-  die "Error, select('1:2') did not position the handle on the child: ",
-    $handle->get_value(),',',$handle->get_key(),"\n";
-}
-print "ok 4\n";
+diag("Testing select...");
+is($handle->top(), 1, "move to top of tree");
+diag("Children: " . join(', ',$handle->child_keys()));
 
-die "Error calling traverse, should have had 7 count, but had: $count\n"
-  unless 7 == $count;
-print "ok 5\n";
+is($handle->select('1:2'), 1, "Select 1:2") or die("Error, select() failed");
 
-# test storing '0' as a child key
-$handle->add_child('zero','foo');
-$handle->last();
-$handle->down();
-$handle->set_key(0);
-unless( 0 == $handle->get_key() ) {
-  die "Error, can't store 0 as a key!\n";
-}
-print "ok 6\n";
+is($handle->down(), 1, "down()");
+is($handle->get_value, 'qux', "select(1:2) positioned on the correct child");
 
+is($count, 7, "Traversed 7 nodes");
 
+diag("test storing 'zero' as a child key");
+is($handle->add_child('zero','fuzz'), undef, 'add_child("zero", "fuzz")');
+is($handle->last, 2, 'last() -- TODO: Why is this a 2 return?');
+is($handle->down, 1, "down()");
+is($handle->get_value, 'fuzz', "down sent us to key with value fuzz");
+is($handle->set_key(0), 0, "set_key(0)");
+is($handle->get_key, 0, "0 Stores as a key");
+
+#done_testing();

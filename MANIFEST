@@ -5,4 +5,8 @@ README
 Makefile.PL
 Build.PL
 lib/Tree/MultiNode.pm
-t/test.pl
+t/00-load.t
+t/01-multinode.t
+t/98-pod-coverage.t
+t/99-pod.t
+
