@@ -18,8 +18,7 @@ my $builder = Module::Build->new(
     meta_merge     => {
       resources => {
         homepage => 'http://github.com/toddr/Tree-MultiNode',
-        bugtracker =>
-          'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Tree-MultiNode',
+        bugtracker => 'https://rt.cpan.org/NoAuth/Bugs.html?Dist=Tree-MultiNode',
         MailingList => 'mailto:toddr@cpan.org',
         repository  => 'git://github.com/toddr/Tree-MultiNode.git',
       }

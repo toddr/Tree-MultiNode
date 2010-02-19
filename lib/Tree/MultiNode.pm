@@ -1,8 +1,8 @@
 
 =head1 NAME
 
-MultiNode.pm  -- a multi node tree object.  Most useful for 
-modeling heirarchial data structures.
+Tree::MultiNode -- a multi-node tree object.  Most useful for 
+modeling hierarchical data structures.
 
 =head1 SYNOPSIS
 
@@ -59,11 +59,11 @@ modeling heirarchial data structures.
 =head1 DESCRIPTION
 
 Tree::MultiNode, Tree::MultiNode::Node, and MultiNode::Handle are objects 
-modeled after C++ classes that I had written to help me model heirarchical 
-information as datastructures (such as the relationships between records in 
-an RDBMS).  The tree is basicly a list of lists type data structure, where 
+modeled after C++ classes that I had written to help me model hierarchical 
+information as data structures (such as the relationships between records in 
+an RDBMS).  The tree is basically a list of lists type data structure, where 
 each node has a key, a value, and a list of children.  The tree has no
-internal sorting, though all operations perserve the order of the child 
+internal sorting, though all operations preserve the order of the child 
 nodes.  
 
 =head2 Creating a Tree
@@ -91,9 +91,9 @@ child nodes.
   # or
   $handle->add_child();
 
-add_child can take 3 paramters -- a key, a value, and a 
-position.  The key and value will set the key/value of the child on construction.
-If pos is passed, the new child will be inserted into the list of children.
+add_child can take 3 parameters -- a key, a value, and a position.  The key
+and value will set the key/value of the child on construction.  If pos is
+passed, the new child will be inserted into the list of children.
 
 To move the handle so it points at a child (so you can start manipulating that
 child), there are a series of methods to call:
@@ -162,7 +162,7 @@ sub new
 }
 
 #
-# this destructor is for clearing the circular refrences between
+# this destructor is for clearing the circular references between
 # the tree, the nodes, and their children.
 #
 sub DESTROY
@@ -179,7 +179,7 @@ use Carp;
 
 =head2 Tree::MultiNode::Node
 
-Please note that the Node object is used internaly by the MultiNode object.  
+Please note that the Node object is used internally by the MultiNode object.  
 Though you have the ability to interact with the nodes, it is unlikely that
 you should need to.  That being said, the interface is documented here anyway.
 
@@ -260,8 +260,8 @@ sub _clone
   @param     key [scalar]
   @returns   the key [scalar]
 
-Used to set, or retreive the key for a node.  If a parameter is passed,
-it sets the key for the node.  The value of the key member is alwyays
+Used to set, or retrieve the key for a node.  If a parameter is passed,
+it sets the key for the node.  The value of the key member is always
 returned.
 
   print $node3->key(), "\n";    # 'fname'
@@ -286,8 +286,8 @@ sub key
   @param    the value to set [scalar]
   @returns  the value [scalar]
 
-Used to set, or retreive the value for a node.  If a parameter is passed,
-it sets the value for the node.  The value of the value member is alwyays
+Used to set, or retrieve the value for a node.  If a parameter is passed,
+it sets the value for the node.  The value of the value member is always
 returned.
 
   print $node3->value(), "\n";   # 'Larry'
@@ -312,7 +312,7 @@ sub value
 
   @returns  the deleted key
 
-Clears the key member bu deleting it.
+Clears the key member by deleting it.
 
   $node3->clear_key();
 
@@ -328,7 +328,7 @@ sub clear_key
 
   @returns  the deleted value
 
-Clears the value member bu deleting it.
+Clears the value member by deleting it.
 
   $node3->clear_value();
 
@@ -344,7 +344,7 @@ sub clear_value
 
   @returns  reference to children [array reference]
 
-Returns a refrence to the array that contains the children of the
+Returns a reference to the array that contains the children of the
 node object.
 
   $array_ref = $node3->children();
@@ -414,7 +414,7 @@ sub child_kv_pairs
 
 =head2 Tree::MultiNode::Node::child_key_positions  
 
-This function returns a hashtable that consists of the
+This function returns a hash table that consists of the
 child keys as the hash keys, and the position in the child
 array as the value.  This allows for a quick and dirty way
 of looking up the position of a given key in the child list.
@@ -440,7 +440,7 @@ sub child_key_positions
 
 =head2 Tree::MultiNode::Node::parent
 
-Returns a refrence to the parent node of the current node.
+Returns a reference to the parent node of the current node.
 
   $node_parent = $node3->parent();
 
@@ -507,7 +507,7 @@ first(), next(), prev(), last(), and position() can be used to set the current c
 and then traverse down into it.
 
 The depth of the current node is a measure of the length of the path
-from the top of the tree to the current node, i.e. the top of the node
+from the top of the tree to the current node, i.e., the top of the node
 has a depth of 0, each of its children has a depth of 1, etc.
 
 =cut
@@ -536,7 +536,7 @@ sub new
   }
   else {
     unless( ref($data) eq "Tree::MultiNode" ) {
-      confess "Error, invalid Tree::MultiNode refrence:  $data\n";
+      confess "Error, invalid Tree::MultiNode reference:  $data\n";
     }
 
     $self->{'tree'}       = $data;
@@ -642,7 +642,7 @@ sub set_key
 
 =head2 Tree::MultiNode::Handle::get_value
 
-Retreives the value for the current node.
+Retrieves the value for the current node.
 
   $val = $handle->get_value();
 
@@ -683,8 +683,8 @@ sub set_value
 
 =head2 Tree::MultiNode::Handle::get_child
 
-get_child takes an optional paramater which is the position of the child
-that is to be retreived.  If this position is not specified, get_child 
+get_child takes an optional parameter which is the position of the child
+that is to be retrieved.  If this position is not specified, get_child 
 attempts to return the current child.  get_child returns a Node object.
 
   my $child_node = $handle->get_child();
@@ -720,7 +720,7 @@ This member adds a new child node to the end of the array of children for the
 current node.  There are three optional parameters:
 
   - a key
-  - a vlaue
+  - a value
   - a position
 
 If passed, the key and value will be set in the new child.  If a position is 
@@ -791,20 +791,20 @@ sub depth
 
 =head2 Tree::MultiNode::Handle::select
 
-Sets the current child via a specified value -- basicly it iterates
+Sets the current child via a specified value -- basically it iterates
 through the array of children, looking for a match.  You have to 
-supply the key to look for, and optionaly a sub ref to find it.  The 
+supply the key to look for, and optionally a sub ref to find it.  The 
 default for this sub is 
 
   sub { return shift eq shift; }
 
 Which is sufficient for testing the equality of strings (the most common
 thing that I think will get stored in the tree).  If you're storing multiple
-datatypes as keys, you'll have to write a sub that figures out how to 
-perform the comparisions in a sane manner.
+data types as keys, you'll have to write a sub that figures out how to 
+perform the comparisons in a sane manner.
 
-The sub ref should take 2 args, and compare them -- return false if they
-don't match, and true if they do.
+The code reference should take two arguments, and compare them -- return
+false if they don't match, and true if they do.
 
   $handle->select('lname', sub { return shift eq shift; } );
 
@@ -834,7 +834,7 @@ sub select
 
 =head2 Tree::MultiNode::Handle::position
 
-Sets, or retreives the current child position.
+Sets, or retrieves the current child position.
 
   print "curr child pos is: ", $handle->position(), "\n";
   $handle->position(5);    # sets the 6th child as the current child
@@ -874,10 +874,10 @@ Tree::MultiNode::Handle::last
 
 These functions manipulate the current child member.  first() sets the first
 child as the current child, while last() sets the last.  next(), and prev() will
-move to the next/prev child respectivly.  If there is no current child node,
+move to the next/prev child respectively.  If there is no current child node,
 next() will have the same effect as first(), and prev() will operate as last().
 prev() fails if the current child is the first child, and next() fails if the
-current child is the last child -- i.e. they do not wrap around.
+current child is the last child -- i.e., they do not wrap around.
 
 These functions will fail if there are no children for the current node.
 
@@ -1037,7 +1037,7 @@ sub top
 
 This returns an array of Node objects that represents the children of the
 current Node.  Unlike Node::children(), the array Handle::children() is not
-a refrnece to an array, but an array.  Useful if you need to iterate through
+a reference to an array, but an array.  Useful if you need to iterate through
 the children of the current node.
 
   print "There are: ", scalar($handle->children()), " children\n";
@@ -1059,7 +1059,7 @@ sub children
 
 =head2 Tree::MultiNode::Handle::child_key_positions
 
-This function returns a hashtable that consists of the
+This function returns a hash table that consists of the
 child keys as the hash keys, and the position in the child
 array as the value.  This allows for a quick and dirty way
 of looking up the position of a given key in the child list.
@@ -1163,7 +1163,7 @@ sub remove_child
 =head2 Tree::MultiNode::Handle::child_keys
 
 Returns the keys from the current node's children.
-Returns undef if there is no currnet node.
+Returns undef if there is no current node.
 
 =cut
 
@@ -1183,7 +1183,7 @@ sub child_keys
   });
 
 Traverse takes a subroutine reference, and will visit each node of the tree,
-starting with the node the handle currently points to, recrusivly down from the
+starting with the node the handle currently points to, recursively down from the
 current position of the handle.  Each time the subroutine is called, it will be
 passed a handle which points to the node to be visited.  Any additional
 arguments after the sub ref will be passed to the traverse function _before_
@@ -1262,8 +1262,8 @@ Algorithms in C++
    Addison Wesley 1992
    ISBN 0201510596
 
-The Art of Computer Programming  Volume 1 Fundamental Algorithms
-  third edition, Donald E. Knuth
+The Art of Computer Programming, Volume 1: Fundamental Algorithms,
+   third edition, Donald E. Knuth
 
 =head1 AUTHORS
 
