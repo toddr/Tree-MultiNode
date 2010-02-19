@@ -1,6 +1,9 @@
 Revision history for Perl extension Tree::MultiNode.
 
-1.0.11 
+1.0.12 Fri Feb 19 2010 09:00:00 CST 2010
+  - Tweak to new documentation for CPAN
+
+1.0.11 Fri Feb 19 2010 01:00:00 CST 2010
   - Convert module to standart treee layout.
   - Convert to Test::More suite with additional tests
   - Generat META.yml file from new Build.PL data
