@@ -1,6 +1,6 @@
 #!perl -T
 
-use Test::More tests => 60;
+use Test::More tests => 71;
 
 use Tree::MultiNode;
 
@@ -16,14 +16,14 @@ $handle->add_child("c", 1);
 $handle->remove_child(1);
 my %pairs = $handle->kv_pairs();
 
-diag("[$0] Pairs: ", join(', ',%pairs));
+pass("**** [$0] Pairs: " .  join(', ',%pairs));
 
 ok(!defined $pairs{'b'}, "pair b not defined");
 ok( defined $pairs{'a'}, "pair a defined");
 ok( defined $pairs{'c'}, "pair c defined");
 
-pass("testing traverse...");
-pass("....t digit formatting...");
+pass("**** testing traverse...");
+pass("**** ....t digit formatting...");
 $tree   = new Tree::MultiNode();
 $handle = new Tree::MultiNode::Handle($tree);
 isa_ok($tree, 'Tree::MultiNode');
@@ -45,7 +45,7 @@ is($handle->top(), 1, "move to top of tree");
 my $count = 0;
 $handle->traverse(sub {
     my $h = pop;
-    diag(sprintf("%sk: %- 5s v: %s\n", '  ' x $handle->depth, $h->get_data));
+    pass(sprintf("**** %sk: %- 5s v: %s", '  ' x $handle->depth, $h->get_data));
 
     $count++;
     isa_ok($h, 'Tree::MultiNode::Handle');
@@ -59,9 +59,9 @@ $handle->traverse(sub {
 );
 
 
-diag("Testing select...");
+pass("**** Testing select...");
 is($handle->top(), 1, "move to top of tree");
-diag("Children: " . join(', ',$handle->child_keys()));
+pass("**** Children: " . join(', ',$handle->child_keys()));
 
 is($handle->select('1:2'), 1, "Select 1:2") or die("Error, select() failed");
 
@@ -70,7 +70,7 @@ is($handle->get_value, 'qux', "select(1:2) positioned on the correct child");
 
 is($count, 7, "Traversed 7 nodes");
 
-diag("test storing 'zero' as a child key");
+pass("**** test storing 'zero' as a child key");
 is($handle->add_child('zero','fuzz'), undef, 'add_child("zero", "fuzz")');
 is($handle->last, 2, 'last() -- TODO: Why is this a 2 return?');
 is($handle->down, 1, "down()");

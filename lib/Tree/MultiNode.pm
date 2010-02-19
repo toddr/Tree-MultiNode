@@ -135,7 +135,7 @@ use strict;
 use vars qw( $VERSION @ISA );
 require 5.004;
 
-$VERSION = '1.0.10';
+$VERSION = '1.0.11';
 @ISA     = ();
 
 =head2 Tree::MultiNode::new
