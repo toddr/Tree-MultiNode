@@ -1267,9 +1267,13 @@ The Art of Computer Programming  Volume 1 Fundamental Algorithms
 
 =head1 AUTHORS
 
-Kyle R. Burton mortis@voicenet.com (initial version, and maintenence)
-Daniel X. Pape dpape@canis.uiuc.edu (see Changes file from the source
-archive), Eric Joanis <joanis@cs.toronto.edu>
+Kyle R. Burton <mortis@voicenet.com> (initial version, and maintenence)
+
+Daniel X. Pape <dpape@canis.uiuc.edu> (see Changes file from the source archive)
+
+Eric Joanis <joanis@cs.toronto.edu>
+
+Todd Rinaldo <toddr@cpan.org>
 
 =head1 BUGS
 
