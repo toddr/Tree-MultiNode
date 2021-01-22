@@ -3,9 +3,8 @@ INSTALL
 lib/Tree/MultiNode.pm
 Makefile.PL
 MANIFEST
-META.yml
 README
 t/00-load.t
 t/01-multinode.t
-t/98-pod-coverage.t
-t/99-pod.t
+xt/98-pod-coverage.t
+xt/99-pod.t
