@@ -1,0 +1,12 @@
+^.github/
+^.git/.*
+^MYMETA.*
+^MANIFEST\.
+^.gitignore
+^.perltidyrc
+^Makefile$
+^blib
+^pm_to_blib
+^.*\.bs
+cpanfile
+^xt/
